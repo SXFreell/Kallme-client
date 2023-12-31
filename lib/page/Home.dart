@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:kallme/components/index.dart';
 
+import '../tools/MqttHandler.dart';
+
 class MyHomePage extends StatelessWidget {
   const MyHomePage({super.key});
 
@@ -36,7 +38,25 @@ class NotificationList extends StatefulWidget {
 }
 
 class _NotificationList extends State<NotificationList> {
+  MqttHandler mqttHandler = MqttHandler();
+
+  List<String> mqttHandlerData = [];
   final Map<String, VoidCallback> _mapForHideActions = {};
+  @override
+  void initState() {
+    super.initState();
+    mqttHandler.connect();
+    mqttHandler.addListener(() {
+      print("mqttHandler.addListener");
+      addNotificationWithContent({
+        'title': "消息标题",
+        'content': mqttHandler.data.value,
+        'time': DateTime.now().toString(),
+        'icon': Icons.notifications_active_outlined,
+      });
+    });
+  }
+
   final List<Map> _notificationList = [
     {
       'title': "消息标题",
@@ -55,6 +75,10 @@ class _NotificationList extends State<NotificationList> {
         'icon': Icons.notifications_active_outlined,
       });
     });
+  }
+
+  void addNotificationWithContent(Map item) {
+    setState(() => _notificationList.add(item));
   }
 
   Widget _buildNotificationItem(Map item) {
@@ -94,10 +118,11 @@ class _NotificationList extends State<NotificationList> {
                     Padding(
                       padding: const EdgeInsets.only(left: 12.0, right: 6.0),
                       child: IconButton(
-                        onPressed: () {
-                        },
-                        icon: const Icon(Icons.star_rounded,
-                        size: 28,),
+                        onPressed: () {},
+                        icon: const Icon(
+                          Icons.star_rounded,
+                          size: 28,
+                        ),
                       ),
                     ),
                     Padding(
@@ -108,9 +133,11 @@ class _NotificationList extends State<NotificationList> {
                             _notificationList.removeAt(index);
                           });
                         },
-                        icon: const Icon(Icons.delete_rounded,
-                        size: 28,
-                        color: Colors.red,),
+                        icon: const Icon(
+                          Icons.delete_rounded,
+                          size: 28,
+                          color: Colors.red,
+                        ),
                       ),
                     ),
                   ],
@@ -138,8 +165,7 @@ class _NotificationList extends State<NotificationList> {
                   },
                 );
                 // return const MySlider(child: Text("123"));
-              }
-            ),
+              }),
         ),
       ],
     );
